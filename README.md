@@ -174,14 +174,6 @@ to point at a real SFTP server.
 
 For demo06 standalone: set `DB_USER`, `DB_PASSWORD` and have MySQL 8 running on port 3306.
 
-## Presentation
-
-See [`presentation/TALK_SCRIPT.md`](presentation/TALK_SCRIPT.md) for the full 60-minute
-talk script with speaker notes, slide descriptions, and Q&A prep.
-
-See [`presentation/SLIDES_OUTLINE.md`](presentation/SLIDES_OUTLINE.md) for the slide-by-slide
-visual design guide.
-
 ## Project Structure
 
 ```
@@ -226,9 +218,6 @@ src/
 │       ├── Demo06_DatabaseRouteTest.groovy   ← Testcontainers MySQL
 │       ├── Demo12_SpringAiToolsTest.groovy
 │       └── Demo13_TelegramRouteTest.groovy
-presentation/
-├── TALK_SCRIPT.md    ← full 60-min speaker script
-└── SLIDES_OUTLINE.md ← visual design guide
 scripts/
 ├── setup.sh          ← first-time setup
 └── run-demo.sh       ← launch a demo by number
