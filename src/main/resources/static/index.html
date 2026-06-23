@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Logistics Control Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col justify-between font-sans">
+
+<header class="bg-gray-800 border-b border-gray-700 p-5 shadow-md">
+    <div class="max-w-5xl mx-auto flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-indigo-400 tracking-wide">📦 Camel + Spring AI Dashboard</h1>
+        <span class="px-3 py-1 bg-green-500/10 text-green-400 text-xs rounded-full font-mono border border-green-500/20 animate-pulse">
+                System Active
+            </span>
+    </div>
+</header>
+
+<main class="flex-1 max-w-5xl w-full mx-auto p-5 flex flex-col space-y-4 overflow-hidden">
+    <div id="console-output"
+         class="flex-1 bg-gray-950 rounded-lg p-6 font-mono text-sm border border-gray-800 overflow-y-auto space-y-4 shadow-inner min-h-[400px]">
+        <div class="text-gray-500">// System ready. Ask a question below to see real-time reasoning and legacy
+            integration...
+        </div>
+    </div>
+</main>
+
+<footer class="bg-gray-800 border-t border-gray-700 p-4 shadow-lg">
+    <div class="max-w-5xl mx-auto flex space-x-3">
+        <input type="text" id="user-prompt"
+               placeholder="e.g., Do we have enough units of SKU-99 to ship an order of 50?"
+               class="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-gray-500 transition-colors">
+        <button onclick="sendPrompt()"
+                class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-3 rounded-lg transition-all transform active:scale-95 shadow-md shadow-indigo-600/20">
+            Ask Agent
+        </button>
+    </div>
+</footer>
+
+<script>
+    function sendPrompt() {
+        const input = document.getElementById('user-prompt');
+        const consoleOutput = document.getElementById('console-output');
+        const prompt = input.value.trim();
+
+        if (!prompt) return;
+
+        // Append User Question to Console
+        consoleOutput.innerHTML += `
+                <div class="text-indigo-400 font-semibold mt-4">👤 User: <span class="text-gray-200">${prompt}</span></div>
+            `;
+
+        // Create a placeholder for the incoming AI stream
+        const aiBlockId = 'ai-res-' + Date.now();
+        consoleOutput.innerHTML += `
+                <div class="text-emerald-400 font-semibold mt-2">🤖 AI Agent:
+                    <span id="${aiBlockId}" class="text-gray-300 font-normal"></span>
+                </div>
+            `;
+
+        consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        input.value = ''; // Clear input
+
+        // Connect to Reactive Spring AI Stream
+        const eventSource = new EventSource(`/assistant/stream?prompt=${encodeURIComponent(prompt)}`);
+        const targetSpan = document.getElementById(aiBlockId);
+
+        eventSource.onmessage = function (event) {
+            // Spring AI streams chunks. Let's append them smoothly.
+            // Event source natively handles incoming text tokens.
+            if (event.data) {
+                // Clean up occasional raw spaces or formatting strings if necessary
+                targetSpan.innerText += event.data.replace(/["']/g, "");
+                consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            }
+        };
+
+        eventSource.onerror = function (err) {
+            // Connection closes natively when the stream completes
+            eventSource.close();
+        };
+    }
+
+    // Allow 'Enter' key to submit
+    document.getElementById('user-prompt').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') sendPrompt();
+    });
+</script>
+</body>
+</html>

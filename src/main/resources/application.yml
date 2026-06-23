@@ -1,0 +1,82 @@
+spring:
+  application:
+    name: apache-camel-ai-demo
+
+  datasource:
+    url: jdbc:mysql://localhost:3307/camel_demo?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none      # managed by schema.sql below
+    show-sql: false
+    open-in-view: false
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:sql/schema.sql
+      data-locations: classpath:sql/data.sql
+
+  ai:
+    model:
+      chat: google-genai   # keep Gemini as the sole ChatModel bean; prevents OpenAI from also creating one
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY:REPLACE-ME}
+        chat:
+          options:
+            model: gemini-flash-lite-latest
+            temperature: 0.2      # low temp = deterministic outputs, great for classification
+    openai:
+      api-key: ${OPENAI_API_KEY:sk-placeholder}   # used by Demo 14 GPT transcription
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      audio:
+        transcription:
+          # Must include /v1 — Spring AI 2.0.0 passes this value as-is to the
+          # official OpenAI Java SDK; the /v1 fallback only applies when the
+          # property is absent. Without /v1 the SDK calls /audio/transcriptions → 404.
+          base-url: https://api.openai.com/v1
+          options:
+            model: ${OPENAI_AUDIO_MODEL:gpt-4o-transcribe}
+            language: ${OPENAI_AUDIO_LANGUAGE:en}
+
+camel:
+  springboot:
+    main-run-controller: true
+    name: CamelAiDemo
+  component:
+    telegram:
+      authorization-token: ${TELEGRAM_AUTH_TOKEN:}
+
+# Demo-specific configs
+demo:
+  ollama:
+    base-url: ${OLLAMA_BASE_URL:http://localhost:11434/v1}
+    native-url: ${OLLAMA_NATIVE_URL:http://localhost:11434}  # Ollama's own REST API (not OpenAI-shim)
+    model: ${OLLAMA_MODEL:qwen3:1.7b}
+    embed-model: ${OLLAMA_EMBED_MODEL:nomic-embed-text}      # Demo 11 RAG embeddings
+    api-key: ${OLLAMA_API_KEY:ollama}    # Ollama ignores the value; any non-empty string works
+  sftp:
+    host: ${SFTP_HOST:localhost}
+    port: ${SFTP_PORT:2222}
+    username: ${SFTP_USER:demo}
+    password: ${SFTP_PASS:demo}
+    directory: ${SFTP_DIR:upload}
+  telegram:
+    auth-token: ${TELEGRAM_AUTH_TOKEN:}          # from @BotFather → /newbot → copy the token
+    secret-token: ${TELEGRAM_SECRET_TOKEN:}      # optional; set in setWebhook for request validation
+
+demo14:
+  memory:
+    enabled: true           # Set to false to disable per-user conversation history
+    window-size: 20         # Max messages retained per conversation
+
+logging:
+  level:
+    root: INFO
+    com.devbg.camel: DEBUG
+    org.apache.camel: INFO
+    org.springframework.ai: INFO

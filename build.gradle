@@ -1,0 +1,105 @@
+plugins {
+  id 'java'
+  id 'groovy'
+  id 'org.springframework.boot' version '4.1.0'
+  id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'bg.dev'
+version = '0.0.1'
+description = 'Apache Camel + AI Demo — dev.bg webinar'
+
+java {
+  targetCompatibility = JavaVersion.VERSION_21
+  sourceCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+  mavenCentral()
+  maven { url 'https://repo.spring.io/milestone' }
+  maven { url 'https://repo.spring.io/snapshot' }
+}
+
+ext {
+  camelVersion = '4.20.0'
+  springAiVersion = '2.0.0'
+  testcontainersVersion = '2.0.2'
+  apacheSshdVersion = '2.14.0'
+  groovyVersion = '4.0.24'
+}
+
+dependencyManagement {
+  imports {
+    mavenBom "org.apache.camel.springboot:camel-spring-boot-bom:${camelVersion}"
+    mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+    mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
+  }
+}
+
+dependencies {
+  // ── Spring Boot ──────────────────────────────────────────────────────────
+  implementation 'org.springframework.boot:spring-boot-starter'
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+  implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+  implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+  // ── Apache Camel core ────────────────────────────────────────────────────
+  implementation 'org.apache.camel.springboot:camel-spring-boot-starter'
+
+  // ── Apache Camel components ──────────────────────────────────────────────
+  implementation 'org.apache.camel.springboot:camel-jsonpath-starter'    // Groovy DSL route
+  implementation 'org.apache.camel.springboot:camel-groovy-starter'      // Groovy DSL route
+  implementation 'org.apache.camel.springboot:camel-timer-starter'       // Demo 01
+  implementation 'org.apache.camel.springboot:camel-file-starter'        // Demo 02, 07, 08
+  implementation 'org.apache.camel.springboot:camel-log-starter'         // Demo 03
+  implementation 'org.apache.camel.springboot:camel-jackson-starter'     // JSON everywhere
+  implementation 'org.apache.camel.springboot:camel-ftp-starter'         // Demo 05 – SFTP
+  implementation 'org.apache.camel.springboot:camel-sql-starter'         // Demo 06, 09
+  implementation 'org.apache.camel.springboot:camel-http-starter'        // HTTP utilities
+  implementation 'org.apache.camel.springboot:camel-bean-starter'        // Bean component
+  implementation 'org.apache.camel.springboot:camel-openai-starter'      // Demo 10 – Ollama
+  implementation 'org.apache.camel.springboot:camel-spring-ai-tools-starter' // Demo 12 – Spring AI Tools
+  implementation 'org.apache.camel.springboot:camel-telegram-starter'        // Demo 14 – Telegram bot
+  implementation 'org.apache.camel.springboot:camel-kafka-starter'           // Demo 14 – Kafka alert tool
+
+  // ── Spring AI ────────────────────────────────────────────────────────────
+  implementation 'org.springframework.ai:spring-ai-starter-model-google-genai'
+  implementation 'org.springframework.ai:spring-ai-starter-model-openai'      // Demo 14 – GPT audio transcription
+
+  // ── Groovy runtime ───────────────────────────────────────────────────────
+  implementation "org.apache.groovy:groovy:${groovyVersion}"
+  implementation "org.apache.groovy:groovy-json:${groovyVersion}"
+  implementation "org.apache.groovy:groovy-sql:${groovyVersion}"
+
+  // Testcontainers for development (needs to be available at runtime for JDBC URL)
+
+  // ── Database ─────────────────────────────────────────────────────────────
+  runtimeOnly 'com.mysql:mysql-connector-j'
+
+  // ── Test ─────────────────────────────────────────────────────────────────
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation "org.apache.camel:camel-test-junit5:${camelVersion}"
+  testImplementation "org.apache.camel:camel-test-spring-junit5:${camelVersion}"
+//  testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+  testImplementation 'org.testcontainers:testcontainers-mysql'
+  testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+
+  // Apache MINA SSHD – embedded SFTP server for Demo 05 tests
+  testImplementation "org.apache.sshd:sshd-sftp:${apacheSshdVersion}"
+  testImplementation "org.apache.sshd:sshd-core:${apacheSshdVersion}"
+  testImplementation "org.apache.sshd:sshd-common:${apacheSshdVersion}"
+}
+
+test {
+  useJUnitPlatform()
+}
+
+// Print active Spring profiles on every run so the audience sees what's loaded
+bootRun {
+  systemProperty 'spring.profiles.active', System.getProperty('spring.profiles.active', 'demo01')
+}
+
+wrapper {
+  gradleVersion = '9.2.1'
+}

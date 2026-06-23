@@ -1,0 +1,14 @@
+spring:
+  ai:
+    google:
+      genai:
+        api-key: test-key-not-used-in-tests   # AI calls are mocked in tests
+
+camel:
+  springboot:
+    main-run-controller: false   # don't block in test mode
+
+logging:
+  level:
+    root: WARN
+    com.devbg.camel: DEBUG
