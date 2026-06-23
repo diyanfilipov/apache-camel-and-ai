@@ -66,12 +66,14 @@ Demonstrates the `spring-ai-tools:` URI scheme — any Camel route can be regist
 - Route receives tool parameters as Camel headers (e.g. `itemSku`)
 - LLM decides when to call the tool based on the user query
 - In a real system the route body would query a legacy SQL DB, SAP, or an SFTP file
-- REST controller (`Demo12_LogisticsAssistantController`) exposes a `/logistics` endpoint
-  that accepts natural-language queries and returns AI-powered answers
+- REST controller (`Demo12_LogisticsAssistantController`) exposes two endpoints:
+  - `GET /assistant?prompt=...` — blocking response
+  - `GET /assistant/stream?prompt=...` — streaming SSE response
 
 ```bash
 ./scripts/run-demo.sh 12
-# Then: curl -X POST http://localhost:8080/logistics -d '{"query":"How much SKU-99 do we have?"}'
+# Then: curl "http://localhost:8080/assistant?prompt=How+much+SKU-99+do+we+have"
+# Or stream: curl "http://localhost:8080/assistant/stream?prompt=How+much+SKU-99+do+we+have"
 ```
 
 ---
